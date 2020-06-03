@@ -1,0 +1,3 @@
+#Server Config File
+ServerIP:"192.168.1.1"
+ServerPort:"1337"

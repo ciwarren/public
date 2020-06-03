@@ -1,0 +1,1 @@
+Needs to be ran in linux because of how I handle socket exceptions, feel free to fix it if needed.
