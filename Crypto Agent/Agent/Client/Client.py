@@ -32,24 +32,7 @@ def genPrime(min, max):
 	p = random.choice(primes)
 	return p
 
-def power( x, y, p):  
-  
-    res = 1 # Initialize result  
-  
-    x = x % p # Update x if it is more  
-              # than or equal to p  
-  
-    while (y > 0):  
-  
-        # If y is odd, multiply x with result  
-        if (y & 1): 
-            res = (res * x) % p  
-  
-        # y must be even now  
-        y = y >> 1 # y = y/2  
-        x = (x * x) % p  
-  
-    return res  
+
   
 # Utility function to store prime 
 # factors of a number  
@@ -104,7 +87,7 @@ def findPrimitive( n) :
   
             # Check if r^((phi)/primefactors) 
             # mod n is 1 or not  
-            if (power(r, phi // it, n) == 1):  
+            if (pow(r, phi // it, n) == 1):  
   
                 flag = True
                 break
