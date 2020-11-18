@@ -96,7 +96,7 @@ def genPrime(min, max):
 	return p
 
 
-def diffeHellman():
+def diffieHellman():
 	min = 100000
 	max = 999999
 	p = genPrime(min, max)
@@ -127,4 +127,4 @@ def diffeHellman():
 	print(f'Secret A: {secretA}')
 	print(f'Secret B: {secretB}')
 
-diffeHellman()
+diffieHellman()
