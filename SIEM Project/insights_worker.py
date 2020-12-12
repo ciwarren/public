@@ -35,6 +35,7 @@ def interpretConfig(filename):
 
 
 config_dict = interpretConfig("/var/insights/worker.conf")
+
 class Mongo:
 	def __init__(self, host, port, username, password):
 
@@ -127,6 +128,7 @@ while True:
 	print(queue.to_add)
 	for host in queue.to_add:
 		OS = queue.to_add[host]
+		print(f"added {host}")
 		if "windows" in OS:
 			try:
 				groups["[winbeats]"].append(host)
