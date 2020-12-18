@@ -2,9 +2,10 @@ import pymongo
 import os
 import time
 import urllib
+import paramiko
 '''
 Dependencies:
-pip3 install pymongo
+pip install pymongo
 
 Config File Map:
 host:localhost
@@ -34,6 +35,7 @@ def interpretConfig(filename):
 
 
 
+git_commands = ["cd /home/ansible/ncsiem_deploy/ansible","git fetch", "git pull"]
 config_dict = interpretConfig("/var/insights/worker.conf")
 
 class Mongo:
@@ -66,7 +68,9 @@ class Mongo:
 		query = {"_id": id}
 		newvalue = {"$set":{attr:value}}
 		self.collection.update_one(query,newvalue)
-			
+
+os.system("git clone git@gitlab.ncsa.tech:systems-team/ansible.git")
+
 class Queue:
 	def __init__(self):
 		print("Starting Queue")
@@ -87,25 +91,35 @@ class Queue:
 		self.to_add = {}
 
 		#Queue Actions
-		for x in self.todo:
+		for document in self.todo:
 			print(x)
-			if "remove" in x["action"]:
-				self.to_remove.append(x["hostname"])  
+			if "remove" in document["action"]:
+				self.to_remove.append(document["hostname"])  
 
 
-			if "add" in x["action"]: 
-				self.to_add[x["hostname"]]= x["OS_family"]
+			if "add" in document["action"]: 
+				self.to_add[document["hostname"]]= x
 
 			self.finish(x)
 
+
+
+
+
 queue = Queue()
+
+
+client = paramiko.client.SSHClient()
+
+client.load_system_host_keys()
+k = paramiko.RSAKey.from_private_key_file("/var/insights/ssh.pem")
 
 while True:
 
 	
 	queue.categorize()
-	original = open("/var/ansible/hosts.ini", "r")
-	hosts_file = open("/var/ansible/hosts.ini", "r")
+	original = open("/var/insights/ansible/hosts.ini", "r")
+	hosts_file = open("/var/insights/ansible/hosts.ini", "r")
 	groups = {}
 
 	#Read and Group
@@ -121,15 +135,15 @@ while True:
 				groups[current_group].append(line)
 
 	hosts_file.close()
-	hosts_file = open("/var/ansible/hosts.ini", "w")
+	hosts_file = open("/var/insights/ansible/hosts.ini", "w")
 
 	#Adding hosts
 
 	print(queue.to_add)
 	for host in queue.to_add:
-		OS = queue.to_add[host]
+		document = queue.to_add[host]
 		print(f"added {host}")
-		if "windows" in OS:
+		if "windows" in document["OS_family"]:
 			try:
 				groups["[winbeats]"].append(host)
 			except:
@@ -142,7 +156,7 @@ while True:
 				groups["[windows"] = []
 				groups["[windows]"].append(host)
 		
-		if "linux" in OS:
+		if "linux" in document["OS_family"]:
 			try:
 				groups["[filebeats]"].append(host)
 			except:
@@ -155,7 +169,7 @@ while True:
 				groups["[linux]"] = []
 				groups["[linux]"].append(host)
 		
-		if "cisco" in OS:
+		if "cisco" in document["OS_family"]:
 			try:
 				groups["[cisco]"].append(host)
 			except:
@@ -174,24 +188,51 @@ while True:
 		for host in groups[group]:
 			hosts_file.write(f'{host}\n') 
 
-	
-
 	hosts_file.close()
 
-	new = open("/var/ansible/hosts.ini", "r")
+	new = open("/var/insights/ansible/hosts.ini", "r")
 	if new.readlines() not in original.readlines():
-		os.system("git stage /var/insights/hosts.ini")
+
+		for host in queue.to_add:
+			os.system(f'mkdir /var/insights/host_vars/{host}')
+			open(f'/var/insights/host_vars/{host}/ncsiem-vars.yml','x')
+			host_vars = open('ncsiem-vars.yml','w')
+			host_vars.write("#THIS FILE IS MANAGED BY AN EXTERNAL NCSA-INSIGHTS / NCSIEM\n")
+			host_vars.write(f'objectType:{host[object_type]}\n')
+			host_vars.write(f'objectId:{host[object_id]}\n')
+			host_vars.write(f'objectVersion:{host[object_version]}\n')
+			host_vars.close()
+
+
+
+		os.system("git stage /var/insights/ansible/")
 		os.system('git commit -m "updated by insights_worker"')
 		os.system('git push')
+
+	else:
+		time.sleep(60)
+		queue.update()
+		continue
+
+		
+
+	client.connect(hostname ="anisble.ncsa.tech", username = "ansible", pkey = pkey)
 	
+
+	for command in git_update:
+		stdin , stdout, stderr = client.exec_command(command)
+		print (stdout.read())
+		print("Errors")
+		print (stderr.read())
+
+	if queue.to_add:
+		for host in queue.to_add:
+			commands = []
+			commands.append("cd /home/ansible/ncsiem_deploy/ansible")
+			commands.append(f'ansible-playbook -i /home/ansible/ncsiem_deploy/ansible/hosts.ini -l {hostname} -u ansible /home/ncsiem_deploy/ansible/logstash_enroll.yml')
+
+	client.close()
+
 	time.sleep(60)
 
 	queue.update()
-
-
-
-
-
-
-
-
