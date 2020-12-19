@@ -103,6 +103,9 @@ class Queue:
 				self.to_add[document["hostname"]]= document
 
 
+
+
+
 queue = Queue()
 
 
@@ -140,7 +143,7 @@ while True:
 	for host in queue.to_add:
 		document = queue.to_add[host]
 		print(f"added {host}")
-		if "windows" in document["OS_family"].lower():
+		if "windows" in document["OS_family"]:
 			try:
 				groups["[winbeats]"].append(host)
 			except:
@@ -193,14 +196,13 @@ while True:
 	if new.readlines() not in original.readlines():
 
 		for host in queue.to_add:
-		 	document = queue.to_add[host]
 			os.system(f'mkdir /var/insights/ansible/host_vars/{host}')
 			open(f'/var/insights/ansible/host_vars/{host}/ncsiem-vars.yml','x')
 			host_vars = open('ncsiem-vars.yml','w')
 			host_vars.write("#THIS FILE IS MANAGED BY AN EXTERNAL NCSA-INSIGHTS / NCSIEM\n")
-			host_vars.write(f'objectType:{document[object_type]}\n')
-			host_vars.write(f'objectId:{document[object_id]}\n')
-			host_vars.write(f'objectVersion:{document[object_version]}\n')
+			host_vars.write(f'objectType:{host[object_type]}\n')
+			host_vars.write(f'objectId:{host[object_id]}\n')
+			host_vars.write(f'objectVersion:{host[object_version]}\n')
 			host_vars.close()
 
 
@@ -231,11 +233,8 @@ while True:
 		print("Errors")
 		print (stderr.read())
 
-	if queue.to_add:
-		for host in queue.to_add:
-			commands = []
-			commands.append("cd /home/ansible/ncsiem_deploy/ansible")
-			commands.append(f'ansible-playbook -i /home/ansible/ncsiem_deploy/ansible/hosts.ini -l {hostname} -u ansible /home/ncsiem_deploy/ansible/logstash_enroll.yml')
+
+
 
 	client.close()
 
