@@ -113,10 +113,11 @@ client = paramiko.client.SSHClient()
 
 client.load_system_host_keys()
 k = paramiko.RSAKey.from_private_key_file("/var/insights/ssh.pem")
+os.chdir("/var/insights/ansible	")
 
 while True:
 
-	
+	os.system("git pull")	
 	queue.categorize()
 	original = open("/var/insights/ansible/hosts.ini", "r")
 	hosts_file = open("/var/insights/ansible/hosts.ini", "r")
@@ -207,13 +208,11 @@ while True:
 			host_vars.close()
 
 
-		os.chdir("/var/insights/ansible")
 		os.system("git stage /var/insights/ansible/")
 		os.system('git commit -m "updated by insights_worker"')
 		os.system('git push')
 
 	elif queue.to_remove:
-		os.chdir("/var/insights/ansible	")
 		os.system("git stage /var/insights/ansible/")
 		os.system('git commit -m "updated by insights_worker"')
 		os.system('git push')
