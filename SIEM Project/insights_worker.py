@@ -126,13 +126,13 @@ while True:
 	for line in hosts_file:
 		line = line.strip("\n")
 		if "[" in line:
-			groups[line] = []
+			groups[line] = set()
 			current_group = line
 		else:
 			if line in queue.to_remove:
 				print(f"removed {line}")
 			else:
-				groups[current_group].append(line)
+				groups[current_group].add(line)
 
 	hosts_file.close()
 	hosts_file = open("/var/insights/ansible/hosts.ini", "w")
@@ -145,36 +145,36 @@ while True:
 		print(f"added {host}")
 		if "windows" in document["OS_family"]:
 			try:
-				groups["[winbeats]"].append(host)
+				groups["[winbeats]"].add(host)
 			except:
-				groups["[winbeats]"] = []
-				groups["[winbeats]"].append(host)
+				groups["[winbeats]"] = set()
+				groups["[winbeats]"].add(host)
 
 			try:
-				groups["[windows]"].append(host)
+				groups["[windows]"].add(host)
 			except:
-				groups["[windows]"] = []
-				groups["[windows]"].append(host)
+				groups["[windows]"] = set()
+				groups["[windows]"].add(host)
 		
 		elif "linux" in document["OS_family"]:
 			try:
-				groups["[filebeats]"].append(host)
+				groups["[filebeats]"].add(host)
 			except:
-				groups["[filebeats]"] = []
-				groups["[filebeats]"].append(host)
+				groups["[filebeats]"] = set()
+				groups["[filebeats]"].add(host)
 
 			try:
-				groups["[linux]"].append(host)
+				groups["[linux]"].add(host)
 			except:
-				groups["[linux]"] = []
-				groups["[linux]"].append(host)
+				groups["[linux]"] = set()
+				groups["[linux]"].add(host)
 		
 		elif "cisco" in document["OS_family"]:
 			try:
-				groups["[cisco]"].append(host)
+				groups["[cisco]"].add(host)
 			except:
-				groups["[cisco]"] = []
-				groups["[cisco]"].append(host)
+				groups["[cisco]"] = set()
+				groups["[cisco]"].add(host)
 
 		else:
 			print (f'unknown OS family: {document["OS_family"]}')
