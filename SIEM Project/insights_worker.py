@@ -143,7 +143,7 @@ while True:
 	for host in queue.to_add:
 		document = queue.to_add[host]
 		print(f"added {host}")
-		if "windows" in document["OS_family"]:
+		if "windows" in document["OS_family"].lower():
 			try:
 				groups["[winbeats]"].append(host)
 			except:
@@ -156,7 +156,7 @@ while True:
 				groups["[windows]"] = []
 				groups["[windows]"].append(host)
 		
-		if "linux" in document["OS_family"]:
+		elif "linux" in document["OS_family"]:
 			try:
 				groups["[filebeats]"].append(host)
 			except:
@@ -169,7 +169,7 @@ while True:
 				groups["[linux]"] = []
 				groups["[linux]"].append(host)
 		
-		if "cisco" in document["OS_family"]:
+		elif "cisco" in document["OS_family"]:
 			try:
 				groups["[cisco]"].append(host)
 			except:
@@ -177,7 +177,7 @@ while True:
 				groups["[cisco]"].append(host)
 
 		else:
-			print (f'unknown OS family: {OS}')
+			print (f'unknown OS family: {document["OS_family"]}')
 	
 	queue.finish(document)
 
