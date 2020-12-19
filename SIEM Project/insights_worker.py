@@ -113,7 +113,7 @@ client = paramiko.client.SSHClient()
 
 client.load_system_host_keys()
 k = paramiko.RSAKey.from_private_key_file("/var/insights/ssh.pem")
-os.chdir("/var/insights/ansible	")
+os.chdir("/var/insights/ansible")
 
 while True:
 
