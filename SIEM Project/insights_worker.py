@@ -44,7 +44,7 @@ class Mongo:
 		username = urllib.parse.quote_plus(username)
 		password = urllib.parse.quote_plus(password)
 		self.client = pymongo.MongoClient(f"mongodb://{username}:{password}@{host}:{int(port)}/")
-		self.client = pymongo.MongoClient(f"mongodb://{host}:{int(port)}/")
+	
 		self.databases = self.client.list_database_names()
 
 	def set_db(self, db):
@@ -191,7 +191,7 @@ while True:
 	hosts_file.close()
 
 	new = open("/var/insights/ansible/hosts.ini", "r")
-	if new.readlines() not in original.readlines():
+	if new.readlines() not in original.readlines() or queue.to_remove:
 
 		for host in queue.to_add:
 			os.system(f'mkdir /var/insights/host_vars/{host}')
@@ -216,7 +216,7 @@ while True:
 
 		
 
-	client.connect(hostname ="anisble.ncsa.tech", username = "ansible", pkey = pkey)
+	client.connect(hostname ="ansible.ncsa.tech", username = "ansible", pkey = pkey)
 	
 
 	for command in git_update:
