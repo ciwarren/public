@@ -94,15 +94,14 @@ class Queue:
 
 		#Queue Actions
 		for document in self.todo:
-			print(x)
 			if "remove" in document["action"]:
 				self.to_remove.append(document["hostname"])  
 
 
 			if "add" in document["action"]: 
-				self.to_add[document["hostname"]]= x
+				self.to_add[document["hostname"]]= document
 
-			self.finish(x)
+			self.finish(document)
 
 
 
