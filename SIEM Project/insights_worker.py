@@ -96,12 +96,11 @@ class Queue:
 		for document in self.todo:
 			if "remove" in document["action"]:
 				self.to_remove.append(document["hostname"])  
+				self.finish(document)
 
 
 			if "add" in document["action"]: 
 				self.to_add[document["hostname"]]= document
-
-			self.finish(document)
 
 
 
@@ -154,7 +153,7 @@ while True:
 			try:
 				groups["[windows]"].append(host)
 			except:
-				groups["[windows"] = []
+				groups["[windows]"] = []
 				groups["[windows]"].append(host)
 		
 		if "linux" in document["OS_family"]:
@@ -179,6 +178,8 @@ while True:
 
 		else:
 			print (f'unknown OS family: {OS}')
+	
+	queue.finish(document)
 
 	#Writing a .ini
 	print(groups)
