@@ -179,7 +179,7 @@ while True:
 		else:
 			print (f'unknown OS family: {document["OS_family"]}')
 	
-	queue.finish(document)
+		queue.finish(document)
 
 	#Writing a .ini
 	print(groups)
@@ -202,8 +202,8 @@ while True:
 			host_vars = open('ncsiem-vars.yml','w')
 			host_vars.write("#THIS FILE IS MANAGED BY AN EXTERNAL NCSA-INSIGHTS / NCSIEM\n")
 			host_vars.write(f'objectType:{document["object_type"]}\n')
-            host_vars.write(f'objectId:{document["object_id"]}\n')
-            host_vars.write(f'objectVersion:{document["object_version"]}\n')
+			host_vars.write(f'objectId:{document["object_id"]}\n')
+			host_vars.write(f'objectVersion:{document["object_version"]}\n')
 			host_vars.close()
 
 
