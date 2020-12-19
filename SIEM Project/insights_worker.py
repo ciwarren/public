@@ -16,17 +16,18 @@ database:insights
 collection:jobs
 '''
 
-def interpretConfig(filename):
+def interpret_config(filename):
 	file = open(filename, "r")
 	serverConfig = file.readlines()
 	file.close()
 	configDict = {}
 	for x in serverConfig:
 		x = x.strip("\n")
+		x = x.replace(" ", "")
 		try:
 			element = x.split(":")
 			key = str(element[0])
-			value = element[1]
+			value = ":".join(element[1:])
 			configDict[key] = value
 
 		except:
@@ -35,15 +36,15 @@ def interpretConfig(filename):
 
 
 
-git_commands = ["cd /home/ansible/ncsiem_deploy/ansible","git fetch", "git pull"]
-config_dict = interpretConfig("/var/insights/worker.conf")
+git_commands = ["git fetch --git-dir /home/ansible/ncsiem_deploy/ansible", "git pull --git-dir /home/ansible/ncsiem_deploy/ansible"]
+config_dict = interpret_config("/var/insights/worker.conf")
 
 class Mongo:
-	def __init__(self, host, port, username, password):
+	def __init__(self, host, port, username, password, database):
 
 		username = urllib.parse.quote_plus(username)
 		password = urllib.parse.quote_plus(password)
-		self.client = pymongo.MongoClient(f"mongodb://{username}:{password}@{host}:{int(port)}/")
+		self.client = pymongo.MongoClient(f"mongodb://{username}:{password}@{host}:{int(port)}/{database}")
 	
 		self.databases = self.client.list_database_names()
 
@@ -70,11 +71,12 @@ class Mongo:
 		self.collection.update_one(query,newvalue)
 
 os.system("git clone git@gitlab.ncsa.tech:systems-team/ansible.git")
+os.system("git config --global user.email deploy@ncsa.tech")
 
 class Queue:
 	def __init__(self):
 		print("Starting Queue")
-		self.mongo = Mongo(host = config_dict["host"], port = config_dict["port"], username = config_dict["username"], password = config_dict["password"])
+		self.mongo = Mongo(host = config_dict["host"], port = config_dict["port"], username = config_dict["username"], password = config_dict["password"], database	= config_dict["database"])
 		self.mongo.set_db(config_dict["database"])
 		self.mongo.set_collection(config_dict["collection"])
 		self.todo = self.mongo.collection.find({"job_status":"not started"})
@@ -84,7 +86,7 @@ class Queue:
 		print(f"Finished Job:{job['_id']}")
 
 	def update(self):
-		self.todo = mongo.collection.find({"job_status":"not started"})
+		self.todo = self.mongo.collection.find({"job_status":"not started"})
 		print (self.todo)
 	def categorize(self):
 		self.to_remove = []
@@ -191,11 +193,11 @@ while True:
 	hosts_file.close()
 
 	new = open("/var/insights/ansible/hosts.ini", "r")
-	if new.readlines() not in original.readlines() or queue.to_remove:
+	if new.readlines() not in original.readlines():
 
 		for host in queue.to_add:
-			os.system(f'mkdir /var/insights/host_vars/{host}')
-			open(f'/var/insights/host_vars/{host}/ncsiem-vars.yml','x')
+			os.system(f'mkdir /var/insights/ansible/host_vars/{host}')
+			open(f'/var/insights/ansible/host_vars/{host}/ncsiem-vars.yml','x')
 			host_vars = open('ncsiem-vars.yml','w')
 			host_vars.write("#THIS FILE IS MANAGED BY AN EXTERNAL NCSA-INSIGHTS / NCSIEM\n")
 			host_vars.write(f'objectType:{host[object_type]}\n')
@@ -204,7 +206,13 @@ while True:
 			host_vars.close()
 
 
+		os.chdir("/var/insights/ansible")
+		os.system("git stage /var/insights/ansible/")
+		os.system('git commit -m "updated by insights_worker"')
+		os.system('git push')
 
+	elif queue.to_remove:
+		os.chdir("/var/insights/ansible	")
 		os.system("git stage /var/insights/ansible/")
 		os.system('git commit -m "updated by insights_worker"')
 		os.system('git push')
@@ -216,10 +224,10 @@ while True:
 
 		
 
-	client.connect(hostname ="ansible.ncsa.tech", username = "ansible", pkey = pkey)
+	client.connect(hostname ="ansible.ncsa.tech", username = "ansible", pkey = k)
 	
 
-	for command in git_update:
+	for command in git_commands:
 		stdin , stdout, stderr = client.exec_command(command)
 		print (stdout.read())
 		print("Errors")
